@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/* 1. Explicitly bind Tailwind v4 dark variant to the .dark class on html/root */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 2. Light Theme Root Variables */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --primary: #00796b;
+  --primary-hover: #00695c;
+  --primary-light: #e6f7f2;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --muted-text: #475569;
 }
 
+/* 3. Dark Theme Root Variables Triggered by .dark Class */
+.dark {
+  --background: #030712;
+  --foreground: #f8fafc;
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-light: rgba(6, 78, 59, 0.4);
+  --card-bg: #070d1e;
+  --card-border: #1e293b;
+  --muted-text: #94a3b8;
+}
+
+/* 4. Tailwind Theme Token Mapping */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-card: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted-text);
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 5. Base HTML and Body Reset */
+html {
+  background-color: var(--background);
+  color: var(--foreground);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* 6. Utility Styles for Shared UI (Cards, Headings, Inputs) */
+.section-heading {
+  color: var(--foreground);
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}
+
+.section-subheading {
+  color: var(--muted-text);
+}
+
+.custom-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s ease;
+}
+
+.custom-input {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--card-border);
+}
+
+.custom-input::placeholder {
+  color: var(--muted-text);
+}
+
+/* 7. Guaranteed Visible Live Floating Background Animations */
+@keyframes liveAuraOne {
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(45px, -35px) scale(1.25);
+    opacity: 0.9;
+  }
+}
+
+@keyframes liveAuraTwo {
+  0%,
+  100% {
+    transform: translate(0px, 0px) scale(1.15);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-45px, 40px) scale(0.9);
+    opacity: 0.85;
+  }
+}
+
+.live-glow-1 {
+  animation: liveAuraOne 6s ease-in-out infinite !important;
+  will-change: transform, opacity;
+}
+
+.live-glow-2 {
+  animation: liveAuraTwo 8s ease-in-out infinite !important;
+  will-change: transform, opacity;
 }

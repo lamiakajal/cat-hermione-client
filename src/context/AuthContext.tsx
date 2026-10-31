@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+// Unified user interface supporting both avatar and firebase-style photoURL
 export interface User {
   id: string;
   name: string;
   email: string;
   avatar?: string;
+  photoURL?: string;
   role?: string;
 }
 

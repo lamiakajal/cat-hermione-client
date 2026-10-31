@@ -1,27 +1,26 @@
 import React from "react";
+import Link from "next/link";
+import { Heart } from "lucide-react";
 
-export const Logo: React.FC = () => (
-  <div className="flex items-center gap-2 select-none">
-    <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-        />
-      </svg>
-    </div>
-    <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">
-      Unity<span className="text-emerald-600">Pulse</span>
-    </span>
-  </div>
-);
+export const Logo: React.FC = () => {
+  return (
+    <Link href="/" className="flex items-center gap-2.5 group">
+      {/* Circle Icon Badge with Heart */}
+      <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white shadow-sm transition transform group-hover:scale-105">
+        <Heart className="w-5 h-5 fill-white text-white" />
+      </div>
+
+      {/* Brand Text */}
+      <div className="flex flex-col">
+        <span className="text-xl font-extrabold tracking-tight text-slate-800 dark:text-white leading-none">
+          UnityPulse
+        </span>
+        <span className="text-[9px] font-bold tracking-widest text-emerald-600 uppercase mt-0.5">
+          Community Impact Network
+        </span>
+      </div>
+    </Link>
+  );
+};
 
 export default Logo;

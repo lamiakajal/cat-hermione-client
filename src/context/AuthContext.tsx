@@ -1,93 +1,70 @@
 "use client";
 
-import React, { createContext, useContext, useSyncExternalStore } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface User {
+  id: string;
   name: string;
   email: string;
-  photoURL?: string;
+  avatar?: string;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (userData: User) => Promise<void>;
-  logout: () => Promise<void>;
-  updateUserProfile: (name: string, photoURL: string) => void;
+  token: string | null;
+  login: (userData: User, token: string) => void;
+  logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-
-const subscribeToStorage = (callback: () => void) => {
-  window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
-};
-
-const getStoredUser = (): User | null => {
-  try {
-    const saved = localStorage.getItem("social_events_user");
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-};
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const user = useSyncExternalStore<User | null>(
-    subscribeToStorage,
-    getStoredUser,
-    () => null,
-  );
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loading = false;
+  // Restore authenticated session from localStorage on initial client mount
+  useEffect(() => {
+    const restoreSession = () => {
+      try {
+        const storedUser = localStorage.getItem("unitypulse_user");
+        const storedToken = localStorage.getItem("unitypulse_token");
+        if (storedUser && storedToken) {
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+        }
+      } catch (error) {
+        console.error("Failed to parse stored auth session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const login = async (userData: User) => {
-    localStorage.setItem("social_events_user", JSON.stringify(userData));
-    window.dispatchEvent(new Event("storage"));
+    restoreSession();
+  }, []);
 
-    try {
-      await axios.post(
-        `${API_BASE_URL}/auth/jwt`,
-        { email: userData.email, name: userData.name },
-        { withCredentials: true },
-      );
-    } catch (error) {
-      console.error("JWT synchronization error:", error);
-    }
+  // Handle successful user login
+  const login = (userData: User, authToken: string) => {
+    setUser(userData);
+    setToken(authToken);
+    localStorage.setItem("unitypulse_user", JSON.stringify(userData));
+    localStorage.setItem("unitypulse_token", authToken);
   };
 
-  const logout = async () => {
-    try {
-      await axios.post(
-        `${API_BASE_URL}/auth/logout`,
-        {},
-        { withCredentials: true },
-      );
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      localStorage.removeItem("social_events_user");
-      window.dispatchEvent(new Event("storage"));
-    }
-  };
-
-  const updateUserProfile = (name: string, photoURL: string) => {
-    if (!user) return;
-    const updatedUser = { ...user, name, photoURL };
-    localStorage.setItem("social_events_user", JSON.stringify(updatedUser));
-    window.dispatchEvent(new Event("storage"));
+  // Handle user logout and cleanup
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("unitypulse_user");
+    localStorage.removeItem("unitypulse_token");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, logout, updateUserProfile }}
-    >
+    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

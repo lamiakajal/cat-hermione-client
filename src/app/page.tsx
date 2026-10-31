@@ -8,16 +8,16 @@ import { CommunityGallery } from "@/components/modules/home/CommunityGallery";
 import { Newsletter } from "@/components/modules/home/Newsletter";
 
 export default function Home() {
-  // Extract recent civic drives
+  // Extract recent civic drives for the home landing view
   const recentEvents = INITIAL_EVENTS.slice(0, 6) as EventItem[];
 
   return (
-    <main className="space-y-20 pb-20">
+    <div className="space-y-20 pb-20">
       <HeroBanner />
       <FeaturePillars />
       <RecentEvents events={recentEvents} />
       <CommunityGallery />
       <Newsletter />
-    </main>
+    </div>
   );
 }

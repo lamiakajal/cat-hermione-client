@@ -7,12 +7,14 @@ import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { Toaster } from "react-hot-toast";
 
+// Load Inter font subset
 const inter = Inter({ subsets: ["latin"] });
 
+// Platform SEO metadata configuration
 export const metadata: Metadata = {
-  title: "TogetherCare | Social Development & Community Service Platform",
+  title: "UnityPulse | Civic Action & Social Welfare Hub",
   description:
-    "Join hands to organize and participate in winter clothes donation, cleanliness drives, and public welfare campaigns.",
+    "A localized civic action network mobilizing youth for ecological protection, winter relief, free clinics, and grassroots empowerment.",
 };
 
 export default function RootLayout({
@@ -24,13 +26,22 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={`${inter.className} min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 antialiased`}
+        className={`${inter.className} min-h-screen flex flex-col bg-white dark:bg-[#070d1e] text-slate-900 dark:text-slate-100 transition-colors duration-200 antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        {/* Application Theme Context Provider */}
+        <ThemeProvider>
+          {/* Global User Authentication Context Provider */}
           <AuthProvider>
+            {/* Global Flash Toast Feedback */}
             <Toaster position="top-right" reverseOrder={false} />
+
+            {/* Top Navigation Component */}
             <Navbar />
+
+            {/* Dynamic Application Routes */}
             <main className="flex-1">{children}</main>
+
+            {/* Bottom Shared Footer Component */}
             <Footer />
           </AuthProvider>
         </ThemeProvider>

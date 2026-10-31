@@ -5,20 +5,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Heart, Moon, Sun, Menu, X, ArrowRight } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/context/AuthContext";
+import { UserDropdown } from "@/components/shared/UserDropdown";
 
 export const Navbar: React.FC = () => {
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Helper function to check if current route is active
   const isActive = (path: string) => pathname === path;
-
-  // Close mobile navigation menu on route click
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#070d1e]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
+    <header className="relative z-50 w-full bg-white dark:bg-[#070d1e] border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links with Active State */}
+          {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-2 text-sm font-semibold">
             <Link
               href="/"
@@ -65,7 +65,7 @@ export const Navbar: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Desktop Action Buttons & Theme Switcher */}
+          {/* Desktop Right Actions */}
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -76,19 +76,25 @@ export const Navbar: React.FC = () => {
               <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
             </button>
 
-            <Link
-              href="/register"
-              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-white transition"
-            >
-              Sign Up
-            </Link>
+            {user ? (
+              <UserDropdown />
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-white transition"
+                >
+                  Sign Up
+                </Link>
 
-            <Link
-              href="/login"
-              className="px-5 py-2 rounded-xl bg-[#00796B] hover:bg-[#00695c] dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 text-sm font-bold shadow-xs hover:shadow-md transition active:scale-95"
-            >
-              Log In
-            </Link>
+                <Link
+                  href="/login"
+                  className="px-5 py-2 rounded-xl bg-[#00796B] hover:bg-[#00695c] dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 text-sm font-bold shadow-xs hover:shadow-md transition active:scale-95"
+                >
+                  Log In
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Right Controls */}
@@ -102,24 +108,28 @@ export const Navbar: React.FC = () => {
               <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
             </button>
 
-            <button
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-emerald-400 transition active:scale-90"
-              aria-label="Toggle Mobile Navigation"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
+            {user ? (
+              <UserDropdown />
+            ) : (
+              <button
+                onClick={() => setMobileMenuOpen((prev) => !prev)}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-emerald-400 transition active:scale-90"
+                aria-label="Toggle Mobile Navigation"
+              >
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu Drawer with Active States */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-[#070d1e]/98 backdrop-blur-xl px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-200">
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && !user && (
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d1e] px-4 pt-4 pb-6 space-y-4 shadow-xl">
           <nav className="flex flex-col space-y-1.5 text-base font-bold">
             <Link
               href="/"
@@ -127,7 +137,7 @@ export const Navbar: React.FC = () => {
               className={`p-3 rounded-xl transition ${
                 isActive("/")
                   ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
-                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00897B] dark:hover:text-emerald-400"
+                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
               }`}
             >
               Home
@@ -139,19 +149,18 @@ export const Navbar: React.FC = () => {
               className={`p-3 rounded-xl transition ${
                 isActive("/events")
                   ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
-                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00897B] dark:hover:text-emerald-400"
+                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
               }`}
             >
               Upcoming Events
             </Link>
           </nav>
 
-          {/* Mobile Auth Buttons Stack */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-2.5">
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
             <Link
               href="/login"
               onClick={closeMenu}
-              className="w-full py-3 rounded-xl bg-[#00796B] dark:bg-emerald-500 text-white dark:text-slate-950 font-bold text-sm text-center shadow-md flex items-center justify-center gap-2 active:scale-98 transition"
+              className="w-full py-3 rounded-xl bg-[#00796B] dark:bg-emerald-500 text-white dark:text-slate-950 font-bold text-sm text-center shadow-md flex items-center justify-center gap-2"
             >
               <span>Log In</span>
               <ArrowRight className="w-4 h-4" />
@@ -160,7 +169,7 @@ export const Navbar: React.FC = () => {
             <Link
               href="/register"
               onClick={closeMenu}
-              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-bold text-sm text-center hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-98 transition"
+              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-bold text-sm text-center hover:bg-slate-100 dark:hover:bg-slate-800/80"
             >
               Create an Account
             </Link>

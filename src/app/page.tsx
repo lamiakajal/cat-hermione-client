@@ -5,8 +5,10 @@ import { HeroBanner } from "@/components/modules/home/HeroBanner";
 import { FeaturePillars } from "@/components/modules/home/FeaturePillars";
 import { RecentEvents } from "@/components/modules/home/RecentEvents";
 import { CommunityGallery } from "@/components/modules/home/CommunityGallery";
+import { Newsletter } from "@/components/modules/home/Newsletter";
 
 export default function Home() {
+  // Extract recent civic drives
   const recentEvents = INITIAL_EVENTS.slice(0, 6) as EventItem[];
 
   return (
@@ -15,6 +17,7 @@ export default function Home() {
       <FeaturePillars />
       <RecentEvents events={recentEvents} />
       <CommunityGallery />
+      <Newsletter />
     </main>
   );
 }

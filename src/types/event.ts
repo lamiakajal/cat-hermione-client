@@ -1,36 +1,25 @@
-export type EventCategory =
-  | "Donation"
-  | "Cleanup"
-  | "Plantation"
-  | "Healthcare"
-  | "Education";
-
-// Interface for civic event data structures
 export interface EventItem {
   id: string;
-  _id?: string; // Optional MongoDB ObjectId support
   title: string;
-  category: EventCategory;
-  thumbnail: string;
-  location: string;
-  date: string;
-  time?: string;
   description: string;
-  organizer: string;
-  organizerEmail: string;
-  organizerAvatar: string;
+  category: string;
+  date: string;
+  time: string;
+  location: string;
+  thumbnail: string;
   attendeesCount: number;
   targetAttendees: number;
-  attendees?: string[]; // Array of volunteer user emails or IDs
-  tags?: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  organizer: string;
+  organizerEmail: string;
+  organizerAvatar?: string;
 }
 
-// Interface for gallery photo items
 export interface GalleryItem {
-  url: string;
+  id?: string;
   title: string;
-  location: string;
-  stat: string;
+  caption?: string;
+  description?: string;
+  imageUrl: string;
+  location?: string;
+  date?: string;
 }

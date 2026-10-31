@@ -1,168 +1,174 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
-import ThemeToggle from "./ThemeToggle";
-import {
-  Users,
-  Calendar,
-  PlusCircle,
-  BookmarkCheck,
-  LayoutDashboard,
-  LogOut,
-  LogIn,
-  Menu,
-  X,
-} from "lucide-react";
-import toast from "react-hot-toast";
+import { usePathname } from "next/navigation";
+import { Heart, Moon, Sun, Menu, X, ArrowRight } from "lucide-react";
+import { useTheme } from "next-themes";
 
-export default function Navbar() {
-  const { user, logout } = useAuth();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+export const Navbar: React.FC = () => {
+  const { theme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
-  const handleLogout = async () => {
-    await logout();
-    setDropdownOpen(false);
-    toast.success("Logged out successfully");
-  };
+  // Helper function to check if current route is active
+  const isActive = (path: string) => pathname === path;
+
+  // Close mobile navigation menu on route click
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-md bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800 transition-colors duration-200">
+    <header className="sticky top-0 z-50 w-full bg-white/95 dark:bg-[#070d1e]/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-              <Users className="w-6 h-6" />
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          {/* Logo */}
+          <Link
+            href="/"
+            onClick={closeMenu}
+            className="flex items-center gap-2 sm:gap-2.5 shrink-0"
+          >
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-linear-to-tr from-[#00796B] to-emerald-400 flex items-center justify-center shadow-sm">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">
-                Together
-                <span className="text-emerald-600 dark:text-emerald-400">
-                  Care
-                </span>
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white leading-none">
+                UnityPulse
               </span>
-              <span className="text-[10px] tracking-wider uppercase text-slate-500 dark:text-slate-400 font-medium">
-                Community Action
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#00897B] dark:text-emerald-400 mt-0.5">
+                Community Impact
               </span>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6">
+          {/* Desktop Navigation Links with Active State */}
+          <nav className="hidden md:flex items-center gap-2 text-sm font-semibold">
             <Link
-              href="/events"
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              href="/"
+              className={`px-4 py-2 rounded-xl transition-all duration-200 ${
+                isActive("/")
+                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 font-bold shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+              }`}
             >
-              <Calendar className="w-4 h-4" />
-              Upcoming Events
+              Home
             </Link>
 
-            <ThemeToggle />
+            <Link
+              href="/events"
+              className={`px-4 py-2 rounded-xl transition-all duration-200 ${
+                isActive("/events")
+                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 font-bold shadow-xs"
+                  : "text-slate-600 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+              }`}
+            >
+              Upcoming Events
+            </Link>
+          </nav>
 
-            {user ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full border-2 border-emerald-500/30 hover:border-emerald-500 transition-all focus:outline-none"
-                  title={user.name || "User Profile"}
-                >
-                  <Image
-                    src={
-                      user.photoURL ||
-                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"
-                    }
-                    alt={user.name || "User"}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover"
-                    unoptimized
-                  />
-                </button>
+          {/* Desktop Action Buttons & Theme Switcher */}
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 transition"
+              aria-label="Toggle Theme"
+            >
+              <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
+              <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
+            </button>
 
-                {dropdownOpen && (
-                  <div
-                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50"
-                    onMouseLeave={() => setDropdownOpen(false)}
-                  >
-                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                        {user.email}
-                      </p>
-                    </div>
+            <Link
+              href="/register"
+              className="px-4 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-white transition"
+            >
+              Sign Up
+            </Link>
 
-                    <Link
-                      href="/create-event"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <PlusCircle className="w-4 h-4 text-emerald-500" />
-                      Create Event
-                    </Link>
-
-                    <Link
-                      href="/manage-events"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-teal-500" />
-                      Manage Events
-                    </Link>
-
-                    <Link
-                      href="/joined-events"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                      <BookmarkCheck className="w-4 h-4 text-cyan-500" />
-                      Joined Events
-                    </Link>
-
-                    <div className="border-t border-slate-100 dark:border-slate-800 mt-1 pt-1">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-md shadow-emerald-600/20"
-              >
-                <LogIn className="w-4 h-4" />
-                Login
-              </Link>
-            )}
+            <Link
+              href="/login"
+              className="px-5 py-2 rounded-xl bg-[#00796B] hover:bg-[#00695c] dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 text-sm font-bold shadow-xs hover:shadow-md transition active:scale-95"
+            >
+              Log In
+            </Link>
           </div>
 
+          {/* Mobile Right Controls */}
           <div className="flex md:hidden items-center gap-2">
-            <ThemeToggle />
             <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
+              aria-label="Toggle Theme"
+            >
+              <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
+              <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-emerald-400 transition active:scale-90"
+              aria-label="Toggle Mobile Navigation"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" />
               )}
             </button>
           </div>
         </div>
       </div>
-    </nav>
+
+      {/* Mobile Dropdown Menu Drawer with Active States */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/98 dark:bg-[#070d1e]/98 backdrop-blur-xl px-4 pt-4 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-200">
+          <nav className="flex flex-col space-y-1.5 text-base font-bold">
+            <Link
+              href="/"
+              onClick={closeMenu}
+              className={`p-3 rounded-xl transition ${
+                isActive("/")
+                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
+                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00897B] dark:hover:text-emerald-400"
+              }`}
+            >
+              Home
+            </Link>
+
+            <Link
+              href="/events"
+              onClick={closeMenu}
+              className={`p-3 rounded-xl transition ${
+                isActive("/events")
+                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
+                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-[#00897B] dark:hover:text-emerald-400"
+              }`}
+            >
+              Upcoming Events
+            </Link>
+          </nav>
+
+          {/* Mobile Auth Buttons Stack */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-2.5">
+            <Link
+              href="/login"
+              onClick={closeMenu}
+              className="w-full py-3 rounded-xl bg-[#00796B] dark:bg-emerald-500 text-white dark:text-slate-950 font-bold text-sm text-center shadow-md flex items-center justify-center gap-2 active:scale-98 transition"
+            >
+              <span>Log In</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+
+            <Link
+              href="/register"
+              onClick={closeMenu}
+              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-bold text-sm text-center hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-98 transition"
+            >
+              Create an Account
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
   );
-}
+};
+
+export default Navbar;

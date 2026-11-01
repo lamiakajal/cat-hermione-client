@@ -137,7 +137,7 @@ export const HeroBanner: React.FC = () => {
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link
-            href="/create-event"
+            href="/events/create"
             className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-500/40 hover:border-emerald-400 font-bold text-xs sm:text-sm text-slate-200 hover:text-white transition-all duration-200 flex items-center justify-center gap-2 hover:bg-emerald-500/10 hover:-translate-y-0.5 active:scale-95"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />

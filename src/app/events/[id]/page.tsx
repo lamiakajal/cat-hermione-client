@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
 interface EventDetail {
   _id: string;
@@ -26,6 +28,7 @@ export default function EventDetailsPage() {
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isJoining, setIsJoining] = useState<boolean>(false);
 
   useEffect(() => {
     if (!id) return;
@@ -51,6 +54,43 @@ export default function EventDetailsPage() {
 
     fetchEventDetail();
   }, [id]);
+
+  const handleJoinVolunteer = async () => {
+    // ডেমো ইউজার ইমেইল (লগইন করা ইউজার না থাকলে ডিফল্ট ভলান্টিয়ার ইমেইল পাঠানো হচ্ছে)
+    const userEmail = "volunteer@unitypulse.org";
+
+    try {
+      setIsJoining(true);
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const res = await fetch(`${apiUrl}/events/${id}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        Swal.fire({
+          title: "Successfully Joined!",
+          text: "Thank you for registering as a volunteer for this drive.",
+          icon: "success",
+          confirmButtonColor: "#007a5e",
+          background: "#0f172a",
+          color: "#f8fafc",
+          customClass: {
+            popup: "rounded-2xl border border-slate-800",
+          },
+        });
+      } else {
+        toast.error(data.message || "Failed to join this drive.");
+      }
+    } catch {
+      toast.error("Network error occurred while joining.");
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -168,10 +208,11 @@ export default function EventDetailsPage() {
             </div>
 
             <button
-              onClick={() => alert("Volunteer registration successful!")}
-              className="w-full py-3 px-4 rounded-xl text-center bg-[#007a5e] hover:bg-[#00624b] text-white font-semibold shadow-sm transition"
+              onClick={handleJoinVolunteer}
+              disabled={isJoining}
+              className="w-full py-3 px-4 rounded-xl text-center bg-[#007a5e] hover:bg-[#00624b] text-white font-semibold shadow-sm transition disabled:opacity-50"
             >
-              Join as Volunteer
+              {isJoining ? "Joining..." : "Join as Volunteer"}
             </button>
           </div>
         </div>

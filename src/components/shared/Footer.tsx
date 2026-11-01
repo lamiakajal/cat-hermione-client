@@ -103,7 +103,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link
-                  href="/create-event"
+                  href="/events/create"
                   className="inline-block text-slate-600 dark:text-slate-400 hover:text-[#00796B] dark:hover:text-emerald-400 hover:translate-x-1 transition-all duration-200"
                 >
                   Host a Community Drive

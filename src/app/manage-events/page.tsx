@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Swal from "sweetalert2";
+import toast from "react-hot-toast";
 
 interface EventItem {
   _id: string;
@@ -12,8 +14,8 @@ interface EventItem {
   location: string;
   description: string;
   bannerImage: string;
-  organizerName: string;
-  organizerEmail: string;
+  organizerName?: string;
+  organizerEmail?: string;
 }
 
 export default function ManageEventsPage() {
@@ -21,6 +23,10 @@ export default function ManageEventsPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Update state
+  const [editingEvent, setEditingEvent] = useState<EventItem | null>(null);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   useEffect(() => {
     let ignore = false;
@@ -56,11 +62,23 @@ export default function ManageEventsPage() {
     };
   }, []);
 
-  const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to permanently delete this event?",
-    );
-    if (!confirmDelete) return;
+  const handleDelete = async (id: string, title: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to permanently delete "${title}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#007a5e",
+      cancelButtonColor: "#ef4444",
+      confirmButtonText: "Yes, delete it!",
+      background: "#0f172a",
+      color: "#f8fafc",
+      customClass: {
+        popup: "rounded-2xl border border-slate-800",
+      },
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       setDeletingId(id);
@@ -69,18 +87,63 @@ export default function ManageEventsPage() {
       const res = await fetch(`${apiUrl}/events/${id}`, {
         method: "DELETE",
       });
-      const result = await res.json();
+      const resData = await res.json();
 
-      if (result.success) {
+      if (resData.success) {
         setEvents((prev) => prev.filter((event) => event._id !== id));
+        Swal.fire({
+          title: "Deleted!",
+          text: "The event has been successfully deleted.",
+          icon: "success",
+          confirmButtonColor: "#007a5e",
+          background: "#0f172a",
+          color: "#f8fafc",
+          customClass: {
+            popup: "rounded-2xl border border-slate-800",
+          },
+        });
       } else {
-        alert(result.message || "Could not delete the event.");
+        toast.error(resData.message || "Could not delete the event.");
       }
     } catch (err) {
       console.error("Delete request failure:", err);
-      alert("Failed to delete event. Please check server connectivity.");
+      toast.error("Failed to delete event. Please check server connectivity.");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEvent) return;
+
+    setIsUpdating(true);
+    try {
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+      const res = await fetch(`${apiUrl}/events/${editingEvent._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editingEvent),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Event updated successfully!");
+        setEvents((prev) =>
+          prev.map((ev) =>
+            ev._id === editingEvent._id ? data.data || editingEvent : ev,
+          ),
+        );
+        setEditingEvent(null);
+      } else {
+        toast.error(data.message || "Failed to update event.");
+      }
+    } catch (err) {
+      console.error("Update request failure:", err);
+      toast.error("Network error occurred while updating event.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -178,7 +241,15 @@ export default function ManageEventsPage() {
                       View
                     </Link>
                     <button
-                      onClick={() => handleDelete(event._id)}
+                      type="button"
+                      onClick={() => setEditingEvent(event)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 text-[#007a5e] hover:bg-teal-100 dark:bg-teal-950/50 dark:text-teal-300 dark:hover:bg-teal-900/60 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(event._id, event.title)}
                       disabled={deletingId === event._id}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950/50 dark:text-red-400 dark:hover:bg-red-900/60 transition disabled:opacity-50"
                     >
@@ -189,6 +260,164 @@ export default function ManageEventsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Update Event Modal */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                Update Event Information
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditingEvent(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdate} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  Event Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingEvent.title}
+                  onChange={(e) =>
+                    setEditingEvent({ ...editingEvent, title: e.target.value })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                    Category
+                  </label>
+                  <select
+                    value={editingEvent.category}
+                    onChange={(e) =>
+                      setEditingEvent({
+                        ...editingEvent,
+                        category: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                  >
+                    <option value="Donation">Donation</option>
+                    <option value="Cleanup">Cleanup</option>
+                    <option value="Plantation">Plantation</option>
+                    <option value="Education">Education</option>
+                    <option value="Health">Health</option>
+                    <option value="Relief">Relief</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                    Event Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    min={new Date().toISOString().split("T")[0]}
+                    value={
+                      editingEvent.eventDate
+                        ? new Date(editingEvent.eventDate)
+                            .toISOString()
+                            .split("T")[0]
+                        : ""
+                    }
+                    onChange={(e) =>
+                      setEditingEvent({
+                        ...editingEvent,
+                        eventDate: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editingEvent.location}
+                  onChange={(e) =>
+                    setEditingEvent({
+                      ...editingEvent,
+                      location: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  Banner Image URL
+                </label>
+                <input
+                  type="url"
+                  required
+                  value={editingEvent.bannerImage}
+                  onChange={(e) =>
+                    setEditingEvent({
+                      ...editingEvent,
+                      bannerImage: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  value={editingEvent.description}
+                  onChange={(e) =>
+                    setEditingEvent({
+                      ...editingEvent,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white focus:ring-2 focus:ring-[#007a5e] focus:outline-none text-sm"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingEvent(null)}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-5 py-2 text-xs font-semibold rounded-xl text-white bg-[#007a5e] hover:bg-[#00624b] transition disabled:opacity-50"
+                >
+                  {isUpdating ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </main>

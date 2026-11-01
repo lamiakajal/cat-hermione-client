@@ -32,8 +32,26 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Global User Authentication Context Provider */}
           <AuthProvider>
-            {/* Global Flash Toast Feedback */}
-            <Toaster position="top-right" reverseOrder={false} />
+            {/* Global Flash Toast Feedback with Brand Styling */}
+            <Toaster
+              position="top-right"
+              reverseOrder={false}
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: "#1e293b",
+                  color: "#f8fafc",
+                  borderRadius: "12px",
+                  fontSize: "14px",
+                },
+                success: {
+                  iconTheme: {
+                    primary: "#007a5e",
+                    secondary: "#ffffff",
+                  },
+                },
+              }}
+            />
 
             {/* Top Navigation Component */}
             <Navbar />

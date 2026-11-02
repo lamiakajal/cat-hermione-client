@@ -16,7 +16,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+      <div className="w-9 h-9 rounded-full d-skeleton" />
     );
   }
 

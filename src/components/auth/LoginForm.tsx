@@ -1,150 +1,131 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, ArrowRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, LogIn, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, User } from "@/context/AuthContext";
+import { api, ApiError } from "@/lib/api";
+import { Field } from "@/components/ui/Field";
+import { SocialButtons } from "@/components/auth/SocialButtons";
+
+const OAUTH_ERRORS: Record<string, string> = {
+  github_not_configured: "GitHub login is not set up on the server yet.",
+  github_failed: "GitHub login failed. Please try again.",
+  social_not_configured: "This social login is not set up on the server yet.",
+  social_failed: "Social login failed. Please try again.",
+};
+
+// Only follow same-site paths so ?next= can't be used as an open redirect
+const safeNext = (next: string | null) =>
+  next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const params = useSearchParams();
   const { login } = useAuth();
+
+  // The server redirects back here with ?error= when GitHub login fails
+  useEffect(() => {
+    const code = params.get("error");
+    if (code && OAUTH_ERRORS[code]) toast.error(OAUTH_ERRORS[code]);
+  }, [params]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const found: typeof errors = {};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) found.email = "Enter a valid email address.";
+    if (!password) found.password = "Enter your password.";
+    setErrors(found);
+    if (Object.keys(found).length) return;
+
     setLoading(true);
-
     try {
-      // Mock credentials validation until full backend API hookup
-      if (email && password) {
-        const dummyUser = {
-          id: "usr_" + Date.now(),
-          name: email.split("@")[0].toUpperCase(),
-          email: email,
-          photoURL:
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-        };
-        const dummyToken =
-          "jwt_token_" + Math.random().toString(36).substring(2);
-
-        login(dummyUser, dummyToken);
-        toast.success("Successfully logged in!");
-        router.push("/");
-      }
-    } catch {
-      toast.error("Failed to sign in. Please try again.");
+      const res = await api<{ user: User; token: string }>("/auth/login", {
+        method: "POST",
+        body: { email: email.trim(), password },
+      });
+      login(res.user, res.token);
+      toast.success(`Welcome back, ${res.user.name.split(" ")[0]}!`);
+      router.push(safeNext(params.get("next")));
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Login failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    toast.success("Redirecting to Google Sign-In...");
-  };
-
   return (
     <div className="w-full max-w-md mx-auto p-8 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d1e] shadow-xl">
       <div className="text-center space-y-2 mb-8">
-        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-          Welcome Back
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          Sign in to access your volunteer events and community dashboard.
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+          Welcome back
+        </h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Log in to join events and manage the ones you organise.
         </p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-            Email Address
-          </label>
+      <SocialButtons verb="Continue" disabled={loading} />
+
+      <form onSubmit={handleLogin} noValidate className="space-y-4">
+        <Field label="Email" htmlFor="email" error={errors.email}>
           <div className="relative">
-            <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
+              id="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="volunteer@unitypulse.org"
-              required
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-[#00796B] dark:focus:border-emerald-400 transition"
+              placeholder="you@example.com"
+              aria-invalid={!!errors.email}
+              className="field-input pl-10"
             />
           </div>
-        </div>
+        </Field>
 
-        <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-            Password
-          </label>
+        <Field label="Password" htmlFor="password" error={errors.password}>
           <div className="relative">
-            <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              type="password"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-[#00796B] dark:focus:border-emerald-400 transition"
+              placeholder="Your password"
+              aria-invalid={!!errors.password}
+              className="field-input pl-10 pr-11"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
-        </div>
+        </Field>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3.5 rounded-xl bg-[#00796B] hover:bg-[#00695c] dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 font-bold text-sm shadow-md transition active:scale-98 flex items-center justify-center gap-2 mt-2"
-        >
+        <button type="submit" disabled={loading} className="btn-primary w-full py-3.5 mt-2">
           <LogIn className="w-4 h-4" />
-          <span>{loading ? "Authenticating..." : "Sign In to Account"}</span>
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
 
-      <div className="relative my-6 text-center">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-        </div>
-        <span className="relative bg-white dark:bg-[#070d1e] px-3 text-[11px] font-bold text-slate-400 uppercase">
-          Or continue with
-        </span>
-      </div>
-
-      <button
-        type="button"
-        onClick={handleGoogleLogin}
-        className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800/80 transition flex items-center justify-center gap-2.5"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24">
-          <path
-            fill="#EA4335"
-            d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.4 9 5 12 5z"
-          />
-          <path
-            fill="#4285F4"
-            d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.7s.1-2 .4-2.7L1.9 6.4C.7 8.8 0 10.8 0 12s.7 3.2 1.9 5.6l3.7-2.9z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.3L1.9 16C3.7 19.8 7.5 23 12 23z"
-          />
-        </svg>
-        <span>Continue with Google</span>
-      </button>
-
-      <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/register"
-          className="font-bold text-[#00796B] dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-        >
-          <span>Register here</span>
-          <ArrowRight className="w-3 h-3" />
+      <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+        New here?{" "}
+        <Link href="/register" className="font-bold text-[#00796B] dark:text-emerald-400 hover:underline">
+          Create an account
         </Link>
       </p>
     </div>

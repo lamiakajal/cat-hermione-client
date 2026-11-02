@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* DaisyUI component library. The d- prefix keeps it from clashing with our own btn-* classes */
+@plugin "daisyui" {
+  prefix: "d-";
+  themes:
+    light --default,
+    dark --prefersdark;
+}
+
 /* 1. Explicitly bind Tailwind v4 dark variant to the .dark class on html/root */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -38,6 +46,9 @@
   --color-card-border: var(--card-border);
   --color-muted: var(--muted-text);
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --animate-live-glow-1: liveAuraOne 6s ease-in-out infinite;
+  --animate-live-glow-2: liveAuraTwo 8s ease-in-out infinite;
+  --animate-float-stagger: floatStagger 5s ease-in-out infinite;
 }
 
 /* 5. Base HTML and Body Reset */
@@ -110,6 +121,16 @@ body {
   }
 }
 
+@keyframes floatStagger {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 .live-glow-1 {
   animation: liveAuraOne 6s ease-in-out infinite !important;
   will-change: transform, opacity;
@@ -118,4 +139,259 @@ body {
 .live-glow-2 {
   animation: liveAuraTwo 8s ease-in-out infinite !important;
   will-change: transform, opacity;
+}
+
+/* 8. Shared button and input styles, used across every page */
+@layer components {
+  .btn-primary,
+  .btn-outline,
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.25rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      transform 0.15s ease,
+      box-shadow 0.2s ease;
+  }
+  .btn-primary:active,
+  .btn-outline:active,
+  .btn-danger:active {
+    transform: scale(0.97);
+  }
+  .btn-primary:disabled,
+  .btn-outline:disabled,
+  .btn-danger:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-sm {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    border-radius: 0.75rem;
+  }
+
+  .btn-primary {
+    background: #00796b;
+    color: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #00695c;
+    box-shadow: 0 6px 16px rgb(0 121 107 / 0.25);
+  }
+  .dark .btn-primary {
+    background: #10b981;
+    color: #022c22;
+  }
+  .dark .btn-primary:hover:not(:disabled) {
+    background: #34d399;
+  }
+
+  .btn-outline {
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    background: transparent;
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: #f1f5f9;
+  }
+  .dark .btn-outline {
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+  .dark .btn-outline:hover:not(:disabled) {
+    background: #1e293b;
+  }
+
+  .btn-danger {
+    background: #e11d48;
+    color: #fff;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #be123c;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.875rem;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .field-input::placeholder {
+    color: #94a3b8;
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: #00796b;
+    box-shadow: 0 0 0 3px rgb(0 121 107 / 0.18);
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: #e11d48;
+  }
+  .dark .field-input {
+    background: rgb(15 23 42 / 0.7);
+    border-color: #1e293b;
+    color: #f8fafc;
+  }
+  .dark .field-input:focus {
+    border-color: #34d399;
+    box-shadow: 0 0 0 3px rgb(52 211 153 / 0.2);
+  }
+  /* Native date picker icon is dark by default, flip it in dark mode */
+  .dark .field-input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-glow-1,
+  .live-glow-2,
+  [class*="animate-live-glow"] {
+    animation: none !important;
+  }
+}
+
+/* ---------- Looping motion helpers ---------- */
+@keyframes loop-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes loop-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+@keyframes loop-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+@keyframes loop-shine {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  60%,
+  100% {
+    transform: translateX(260%) skewX(-20deg);
+  }
+}
+
+.loop-float {
+  animation: loop-float 4s ease-in-out infinite;
+}
+.loop-pulse {
+  animation: loop-pulse 2.6s ease-in-out infinite;
+}
+.loop-gradient {
+  background-size: 200% 200%;
+  animation: loop-gradient 6s ease-in-out infinite;
+}
+
+/* A soft light sweep that passes over every primary button */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: translateX(-120%) skewX(-20deg);
+  animation: loop-shine 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.btn-primary:disabled::after {
+  animation: none;
+}
+
+/* Cards lift a little on hover everywhere */
+.group {
+  transition-property: transform, box-shadow, border-color;
+}
+
+/* ---------- Scrollbar ---------- */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #00897b transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00796b, #34d399);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00796b;
+  background-clip: padding-box;
+}
+
+/* Respect people who turn animations off */
+@media (prefers-reduced-motion: reduce) {
+  .loop-float,
+  .loop-pulse,
+  .loop-gradient,
+  .btn-primary::after {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Loader ring rotation (plain keyframes so it never depends on utility classes) */
+@keyframes loop-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.loop-spin {
+  animation: loop-spin 0.9s linear infinite;
+  transform-origin: center;
 }

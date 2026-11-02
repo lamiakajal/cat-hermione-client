@@ -25,7 +25,7 @@ export const FeaturePillars: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
         <div className="group p-6 rounded-3xl border border-[#e2e8f0] dark:border-[#1e293b] bg-white dark:bg-[#070d1e] shadow-sm hover:shadow-xl hover:border-[#00897B] dark:hover:border-emerald-400 hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+            <div className="w-10 h-10 rounded-xl loop-float flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#0f172a] dark:text-[#f8fafc] group-hover:text-[#00897B] dark:group-hover:text-[#34d399] transition-colors duration-200">
@@ -40,7 +40,7 @@ export const FeaturePillars: React.FC = () => {
 
         <div className="group p-6 rounded-3xl border border-[#e2e8f0] dark:border-[#1e293b] bg-white dark:bg-[#070d1e] shadow-sm hover:shadow-xl hover:border-[#00897B] dark:hover:border-emerald-400 hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+            <div className="w-10 h-10 rounded-xl loop-float flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
               <MapPin className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#0f172a] dark:text-[#f8fafc] group-hover:text-[#00897B] dark:group-hover:text-[#34d399] transition-colors duration-200">
@@ -55,7 +55,7 @@ export const FeaturePillars: React.FC = () => {
 
         <div className="group p-6 rounded-3xl border border-[#e2e8f0] dark:border-[#1e293b] bg-white dark:bg-[#070d1e] shadow-sm hover:shadow-xl hover:border-amber-500 dark:hover:border-amber-400 hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#fef3c7] dark:bg-[rgba(120,53,15,0.3)] text-[#d97706] dark:text-[#fbbf24] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+            <div className="w-10 h-10 rounded-xl loop-float flex items-center justify-center bg-[#fef3c7] dark:bg-[rgba(120,53,15,0.3)] text-[#d97706] dark:text-[#fbbf24] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
               <Users className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#0f172a] dark:text-[#f8fafc] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors duration-200">
@@ -70,7 +70,7 @@ export const FeaturePillars: React.FC = () => {
 
         <div className="group p-6 rounded-3xl border border-[#e2e8f0] dark:border-[#1e293b] bg-white dark:bg-[#070d1e] shadow-sm hover:shadow-xl hover:border-[#00897B] dark:hover:border-emerald-400 hover:-translate-y-1.5 transition-all duration-300 ease-out flex flex-col justify-between cursor-pointer">
           <div className="space-y-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
+            <div className="w-10 h-10 rounded-xl loop-float flex items-center justify-center bg-[#e6f7f2] dark:bg-[rgba(6,78,59,0.4)] text-[#00897B] dark:text-[#34d399] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
               <CheckCircle className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#0f172a] dark:text-[#f8fafc] group-hover:text-[#00897B] dark:group-hover:text-[#34d399] transition-colors duration-200">

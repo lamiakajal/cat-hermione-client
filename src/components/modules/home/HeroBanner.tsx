@@ -133,7 +133,7 @@ export const HeroBanner: React.FC = () => {
             href="/events"
             className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl bg-linear-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/25 transition-all duration-200 transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 group"
           >
-            <span>Explore Upcoming Drives</span>
+            <span>Explore Upcoming Events</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
           <Link
@@ -141,7 +141,7 @@ export const HeroBanner: React.FC = () => {
             className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl border-2 border-slate-500/40 hover:border-emerald-400 font-bold text-xs sm:text-sm text-slate-200 hover:text-white transition-all duration-200 flex items-center justify-center gap-2 hover:bg-emerald-500/10 hover:-translate-y-0.5 active:scale-95"
           >
             <PlusCircle className="w-4 h-4 text-emerald-400 group-hover:rotate-90 transition-transform duration-300" />
-            <span>Host a Community Drive</span>
+            <span>Create an Event</span>
           </Link>
         </div>
 
@@ -153,10 +153,10 @@ export const HeroBanner: React.FC = () => {
             style={{ animationDelay: "0s" }}
           >
             <div className="text-xl sm:text-3xl font-black text-emerald-400 group-hover:scale-105 transition-transform">
-              14,200+
+              100% Free
             </div>
             <div className="text-[11px] sm:text-xs font-semibold text-slate-300 mt-1">
-              Verified Volunteers
+              Open to everyone
             </div>
           </div>
 
@@ -166,10 +166,10 @@ export const HeroBanner: React.FC = () => {
             style={{ animationDelay: "0.6s" }}
           >
             <div className="text-xl sm:text-3xl font-black text-teal-400 group-hover:scale-105 transition-transform">
-              385+
+              1 Click
             </div>
             <div className="text-[11px] sm:text-xs font-semibold text-slate-300 mt-1">
-              Completed Drives
+              To join an event
             </div>
           </div>
 
@@ -179,10 +179,10 @@ export const HeroBanner: React.FC = () => {
             style={{ animationDelay: "1.2s" }}
           >
             <div className="text-xl sm:text-3xl font-black text-amber-400 group-hover:scale-105 transition-transform">
-              28 Districts
+              Any Cause
             </div>
             <div className="text-[11px] sm:text-xs font-semibold text-slate-300 mt-1">
-              Nationwide Reach
+              Cleanup to healthcare
             </div>
           </div>
 
@@ -192,10 +192,10 @@ export const HeroBanner: React.FC = () => {
             style={{ animationDelay: "1.8s" }}
           >
             <div className="text-xl sm:text-3xl font-black text-emerald-300 group-hover:scale-105 transition-transform">
-              100% Free
+              Your Area
             </div>
             <div className="text-[11px] sm:text-xs font-semibold text-slate-300 mt-1">
-              Direct Social Action
+              Host it, we list it
             </div>
           </div>
         </div>

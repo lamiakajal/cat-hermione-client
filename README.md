@@ -1,30 +1,48 @@
-# UnityPulse
+# 🌟 UnityPulse — Civic Action & Community Welfare Hub
 
-**Live site:** https://cat-hermione-client.vercel.app
+UnityPulse is a modern, responsive full-stack civic engagement platform engineered to streamline volunteer participation, social welfare initiatives, and event coordination.
 
-UnityPulse is a community platform where people create, join and track social service events in their own area, such as winter clothes distribution, riverbank cleanups and tree plantation drives.
+---
 
-## Features
+## 🔗 Live Deployments & Repositories
 
-- **Create and manage events.** Any logged-in user can publish an event with a title, type, thumbnail (image link or upload from the device), location, organizer details and a future date, then edit or delete only the events they created.
-- **Join and leave in one click.** Every upcoming event has its own details page. Logged-in users can join it, leave it later, and see all their sign-ups sorted by date on the Joined Events page.
-- **Upcoming events only.** Events whose date has passed are hidden automatically, and the events page supports search, type filter and date sorting.
-- **Secure authentication.** Email and password sign-up with password rules (uppercase, lowercase, 6+ characters), GitHub and Google login, BetterAuth with the MongoDB adapter for credentials, and JWT-protected API routes. Sessions survive a page reload on every private route.
-- **Profile management.** Update your display name, change your profile picture by link or upload, and change your password.
-- **Light and dark theme.** One toggle switches the whole interface, and the layout is responsive from phones to wide desktops.
-- **Live impact numbers.** The home page shows real counts of events hosted, upcoming events and volunteers pulled from the database.
-- **Smooth experience.** Loading skeletons, a welcome loader, scroll progress bar, section animations and a friendly 404 page.
+| Component                           | Target URL                                                                        |
+| :---------------------------------- | :-------------------------------------------------------------------------------- |
+| **Client Application (Production)** | [https://cat-hermione-client.vercel.app](https://cat-hermione-client.vercel.app)  |
+| **Backend REST API (Live Engine)**  | [https://cat-hermione-server.vercel.app](https://cat-hermione-server.vercel.app)  |
+| **Client Source Repository**        | [GitHub — cat-hermione-client](https://github.com/lamiakajal/cat-hermione-client) |
+| **Server Source Repository**        | [GitHub — cat-hermione-server](https://github.com/lamiakajal/cat-hermione-server) |
 
-## Tech stack
+---
 
-Next.js (App Router), TypeScript, Tailwind CSS + DaisyUI, Express, MongoDB, BetterAuth (MongoDB adapter), JSON Web Tokens.
+## 🚀 Core Features
 
-## Run locally
+- **Multi-Method Authentication & RBAC:**
+  - Secure session handling via JSON Web Tokens (JWT).
+  - Social authentication integrations (Google OAuth & GitHub OAuth).
+  - Role-protected routes securing organizer actions from unauthorized members.
 
-```bash
-npm install
-cp .env.example .env.local   # set NEXT_PUBLIC_API_URL
-npm run dev
-```
+- **Dynamic Event Discovery & Engagement:**
+  - Real-time catalog with full-text search, multi-category filters, and sorting.
+  - Detailed initiative profiles with instant one-click volunteer registration.
+  - Personalized volunteer tracking dashboard (`/joined-events`).
 
-The API lives in the separate server repository: https://github.com/lamiakajal/cat-hermione-server. Point `NEXT_PUBLIC_API_URL` at it, for example `http://localhost:5000/api`.
+- **Organizer Workspace:**
+  - Dedicated administrative dashboard to publish, modify, and delete community drives.
+  - Real-time form feedback and dynamic status tracking.
+
+- **Production-Ready UI/UX:**
+  - Fully responsive, mobile-first design built with Tailwind CSS and DaisyUI.
+  - System-synced Dark/Light theme switching.
+  - Interactive toast updates (`react-hot-toast`) and confirmation dialogs (`SweetAlert2`).
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+- **Framework:** Next.js 15 (React 19, App Router architecture)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS, DaisyUI
+- **Icons:** Lucide React
+- **Client Networking:** Native Fetch API with centralized request/error interceptors
+- **Hosting & Edge Delivery:** Vercel

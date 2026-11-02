@@ -56,6 +56,17 @@ html {
   background-color: var(--background);
   color: var(--foreground);
   scroll-behavior: smooth;
+  /* Fallback for old browsers */
+  overflow-x: hidden;
+}
+
+/* clip hides sideways overflow WITHOUT turning html/body into a scroll
+   container, so position: fixed items (loader, back-to-top) stay pinned
+   on mobile browsers and the sticky navbar keeps working */
+@supports (overflow: clip) {
+  html {
+    overflow-x: clip;
+  }
 }
 
 body {
@@ -63,7 +74,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
-  overflow-x: hidden;
+  min-height: 100dvh;
+  max-width: 100%;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;

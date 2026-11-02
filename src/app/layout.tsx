@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "UnityPulse | Civic Action & Social Welfare Hub",
   description:
     "A localized civic action network mobilizing youth for ecological protection, winter relief, free clinics, and grassroots empowerment.",
+};
+
+// Lets the page sit properly under phone notches and browser bars
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

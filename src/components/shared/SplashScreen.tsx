@@ -11,6 +11,22 @@ export const SplashScreen: React.FC = () => {
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  // Freeze the page behind the loader so it cannot be scrolled (this is what
+  // made the loader look like it was floating on phones)
+  useEffect(() => {
+    if (!visible) return;
+    const html = document.documentElement;
+    const prevOverflow = html.style.overflow;
+    const prevOverscroll = html.style.overscrollBehavior;
+    html.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    window.scrollTo(0, 0);
+    return () => {
+      html.style.overflow = prevOverflow;
+      html.style.overscrollBehavior = prevOverscroll;
+    };
+  }, [visible]);
+
   useEffect(() => {
     let seen = false;
     try {
@@ -62,7 +78,8 @@ export const SplashScreen: React.FC = () => {
     <div
       role="status"
       aria-label="Loading UnityPulse"
-      className={`fixed inset-0 z-100 flex items-center justify-center bg-white dark:bg-[#070d1e] transition-opacity duration-500 ${
+      style={{ height: "100dvh", touchAction: "none" }}
+      className={`fixed inset-x-0 top-0 z-100 flex items-center justify-center bg-white dark:bg-[#070d1e] transition-opacity duration-500 ${
         fading ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >

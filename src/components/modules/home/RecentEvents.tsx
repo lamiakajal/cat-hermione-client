@@ -27,7 +27,7 @@ export const RecentEvents: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 overflow-hidden">
       <div className="absolute top-1/2 right-0 w-80 h-80 bg-emerald-500/5 dark:bg-teal-500/5 rounded-full blur-3xl pointer-events-none animate-live-glow-1" />
 
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 relative z-10">
@@ -62,10 +62,14 @@ export const RecentEvents: React.FC = () => {
           <div className="text-center py-16 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
             <CalendarX className="w-10 h-10 mx-auto text-slate-400" />
             <p className="mt-3 font-semibold text-slate-700 dark:text-slate-200">
-              {failed ? "Events could not be loaded right now." : "No upcoming events yet."}
+              {failed
+                ? "Events could not be loaded right now."
+                : "No upcoming events yet."}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              {failed ? "Please refresh in a moment." : "Be the first to host one."}
+              {failed
+                ? "Please refresh in a moment."
+                : "Be the first to host one."}
             </p>
             {!failed && (
               <Link href="/events/create" className="btn-primary mt-5">

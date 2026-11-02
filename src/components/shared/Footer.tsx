@@ -90,7 +90,7 @@ export const Footer: React.FC = () => {
                   href="/"
                   className="inline-block text-slate-600 dark:text-slate-400 hover:text-[#00796B] dark:hover:text-emerald-400 hover:translate-x-1 transition-all duration-200"
                 >
-                  Home Platform
+                  Home
                 </Link>
               </li>
               <li>
@@ -98,7 +98,7 @@ export const Footer: React.FC = () => {
                   href="/events"
                   className="inline-block text-slate-600 dark:text-slate-400 hover:text-[#00796B] dark:hover:text-emerald-400 hover:translate-x-1 transition-all duration-200"
                 >
-                  Upcoming Civic Drives
+                  Upcoming Events
                 </Link>
               </li>
               <li>
@@ -106,7 +106,7 @@ export const Footer: React.FC = () => {
                   href="/events/create"
                   className="inline-block text-slate-600 dark:text-slate-400 hover:text-[#00796B] dark:hover:text-emerald-400 hover:translate-x-1 transition-all duration-200"
                 >
-                  Host a Community Drive
+                  Create an Event
                 </Link>
               </li>
               <li>
@@ -162,8 +162,7 @@ export const Footer: React.FC = () => {
               </p>
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-500 leading-relaxed">
-              Encrypted via JWT Token Authorization • MongoDB Cloud Verified
-              Data Integrity
+              Free to join. Anyone can host an event.
             </p>
           </div>
         </div>
@@ -175,23 +174,14 @@ export const Footer: React.FC = () => {
             development.
           </p>
           <div className="flex flex-wrap items-center gap-6">
-            <Link
-              href="#"
-              className="hover:text-[#00796B] dark:hover:text-white hover:underline transition"
-            >
-              Privacy Guidelines
+            <Link href="/events" className="hover:text-[#00796B] dark:hover:text-white hover:underline transition">
+              Upcoming Events
             </Link>
-            <Link
-              href="#"
-              className="hover:text-[#00796B] dark:hover:text-white hover:underline transition"
-            >
-              Volunteer Code of Conduct
+            <Link href="/login" className="hover:text-[#00796B] dark:hover:text-white hover:underline transition">
+              Login
             </Link>
-            <Link
-              href="#"
-              className="hover:text-[#00796B] dark:hover:text-white hover:underline transition"
-            >
-              Vercel Deployment SLA
+            <Link href="/register" className="hover:text-[#00796B] dark:hover:text-white hover:underline transition">
+              Register
             </Link>
           </div>
         </div>

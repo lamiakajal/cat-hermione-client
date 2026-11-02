@@ -171,6 +171,7 @@ body {
     transition:
       background-color 0.2s ease,
       transform 0.15s ease,
+      translate 0.2s ease,
       box-shadow 0.2s ease;
   }
   .btn-primary:active,
@@ -197,6 +198,7 @@ body {
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
   }
   .btn-primary:hover:not(:disabled) {
+    translate: 0 -2px;
     background: #00695c;
     box-shadow: 0 6px 16px rgb(0 121 107 / 0.25);
   }
@@ -353,11 +355,6 @@ body {
   animation: none;
 }
 
-/* Cards lift a little on hover everywhere */
-.group {
-  transition-property: transform, box-shadow, border-color;
-}
-
 /* ---------- Scrollbar ---------- */
 html {
   scrollbar-width: thin;
@@ -406,4 +403,18 @@ html {
 .loop-spin {
   animation: loop-spin 0.9s linear infinite;
   transform-origin: center;
+}
+
+/* Smooth hover lift: cards get their own compositing layer and a gentle curve */
+.hover\:-translate-y-1:hover,
+.hover\:-translate-y-1\.5:hover,
+.hover\:-translate-y-0\.5:hover {
+  will-change: translate;
+}
+@media (hover: none) {
+  .hover\:-translate-y-1:hover,
+  .hover\:-translate-y-1\.5:hover,
+  .hover\:-translate-y-0\.5:hover {
+    translate: none;
+  }
 }

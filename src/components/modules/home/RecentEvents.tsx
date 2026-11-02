@@ -27,7 +27,7 @@ export const RecentEvents: React.FC = () => {
   }, []);
 
   return (
-    <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 overflow-hidden">
+    <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 overflow-x-clip">
       <div className="absolute top-1/2 right-0 w-80 h-80 bg-emerald-500/5 dark:bg-teal-500/5 rounded-full blur-3xl pointer-events-none animate-live-glow-1" />
 
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 relative z-10">

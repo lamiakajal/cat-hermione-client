@@ -1,25 +1,30 @@
+// Shape returned by the API
 export interface EventItem {
-  id: string;
+  _id: string;
   title: string;
-  description: string;
   category: string;
-  date: string;
-  time: string;
+  eventDate: string;
   location: string;
-  thumbnail: string;
-  attendeesCount: number;
-  targetAttendees: number;
-  organizer: string;
+  description: string;
+  bannerImage: string;
+  organizerName: string;
   organizerEmail: string;
-  organizerAvatar?: string;
+  contactEmail?: string;
+  organizerPhoto?: string;
+  attendeesCount: number;
+  hasJoined?: boolean;
+  joinedAt?: string;
+}
+
+export interface EventsResponse {
+  success: boolean;
+  count: number;
+  data: EventItem[];
 }
 
 export interface GalleryItem {
-  id?: string;
   title: string;
   caption?: string;
-  description?: string;
   imageUrl: string;
   location?: string;
-  date?: string;
 }

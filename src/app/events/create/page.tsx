@@ -1,235 +1,81 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { ArrowLeft } from "lucide-react";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EventForm, EventFormValues, emptyEventForm } from "@/components/events/EventForm";
 
-export default function CreateEventPage() {
+function CreateEventContent() {
   const router = useRouter();
+  const { token, user } = useAuth();
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>();
 
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "Relief",
-    eventDate: "",
-    location: "",
-    description: "",
-    bannerImage: "",
-    organizerName: "",
-    organizerEmail: "",
-  });
-
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+  const handleCreate = async (values: EventFormValues) => {
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-      const response = await fetch(`${apiUrl}/events`, {
+      await api("/events", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+        token,
+        body: {
+          ...values,
+          // datetime-local has no timezone, convert it before it leaves the browser
+          eventDate: new Date(values.eventDate).toISOString(),
         },
-        body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        router.push("/events");
-        router.refresh();
-      } else {
-        setError(result.message || "Failed to create event");
-      }
+      toast.success("Event published. It is now live on the events page.");
+      router.push("/events");
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Network error occurred while submitting.",
-      );
-    } finally {
-      setLoading(false);
+      if (err instanceof ApiError) {
+        setServerErrors(err.errors);
+        toast.error(err.message);
+      } else {
+        toast.error("Could not create the event.");
+      }
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-16 transition-colors">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <Link
         href="/events"
-        className="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-[#007a5e] dark:text-slate-400 dark:hover:text-teal-400 transition mb-6"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-[#00796B] dark:text-slate-400 dark:hover:text-emerald-400 transition mb-6"
       >
-        ← Back to All Drives
+        <ArrowLeft className="w-4 h-4" />
+        Back to events
       </Link>
 
-      <div className="pb-8 border-b border-slate-200 dark:border-slate-800 mb-8">
-        <h1 className="text-3xl font-black text-slate-900 dark:text-white">
-          Host a Community Drive
-        </h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">
-          Create and organize a new event.
-        </p>
+      <PageHeader
+        eyebrow="Create event"
+        title="Host a community event"
+        description="Fill in the details below. Your event appears on the upcoming events page as soon as you publish it."
+      />
+
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d1e] p-6 sm:p-8 shadow-sm">
+        <EventForm
+          initial={{
+            ...emptyEventForm,
+            organizerName: user?.name ?? "",
+            contactEmail: user?.email ?? "",
+          }}
+          submitLabel="Publish event"
+          busyLabel="Publishing..."
+          onSubmit={handleCreate}
+          serverErrors={serverErrors}
+        />
       </div>
-
-      {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 text-sm font-medium">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Event Title
-            </label>
-            <input
-              type="text"
-              name="title"
-              required
-              placeholder="e.g., Flood Relief Distribution"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Category
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            >
-              <option value="Relief">Relief</option>
-              <option value="Environment">Environment</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Education">Education</option>
-              <option value="Community">Community</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Event Date & Time
-            </label>
-            <input
-              type="datetime-local"
-              name="eventDate"
-              required
-              value={formData.eventDate}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Location
-            </label>
-            <input
-              type="text"
-              name="location"
-              required
-              placeholder="e.g., Dhaka, Bangladesh"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-            Banner Image URL
-          </label>
-          <input
-            type="url"
-            name="bannerImage"
-            required
-            placeholder="https://images.unsplash.com/..."
-            value={formData.bannerImage}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Organizer Name
-            </label>
-            <input
-              type="text"
-              name="organizerName"
-              required
-              placeholder="Your organization or name"
-              value={formData.organizerName}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Organizer Contact Email
-            </label>
-            <input
-              type="email"
-              name="organizerEmail"
-              required
-              placeholder="organizer@domain.com"
-              value={formData.organizerEmail}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-            Description
-          </label>
-          <textarea
-            name="description"
-            rows={5}
-            required
-            placeholder="Describe the initiative, goals, and volunteer requirements..."
-            value={formData.description}
-            onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#007a5e] transition"
-          />
-        </div>
-
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-3.5 rounded-xl bg-[#007a5e] hover:bg-[#00624b] text-white font-semibold transition shadow-sm disabled:opacity-50"
-          >
-            {loading ? "Publishing Drive..." : "Publish Drive"}
-          </button>
-        </div>
-      </form>
     </div>
+  );
+}
+
+export default function CreateEventPage() {
+  return (
+    <ProtectedRoute>
+      <CreateEventContent />
+    </ProtectedRoute>
   );
 }

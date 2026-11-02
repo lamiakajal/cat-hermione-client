@@ -6,9 +6,11 @@ import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
 import { Toaster } from "react-hot-toast";
+import SplashScreen from "@/components/shared/SplashScreen";
+import ScrollProgress from "@/components/shared/ScrollProgress";
 
 // Load Inter font subset
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 // Platform SEO metadata configuration
 export const metadata: Metadata = {
@@ -23,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${inter.className} min-h-screen flex flex-col bg-white dark:bg-[#070d1e] text-slate-900 dark:text-slate-100 transition-colors duration-200 antialiased`}
@@ -32,6 +34,8 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Global User Authentication Context Provider */}
           <AuthProvider>
+            <SplashScreen />
+            <ScrollProgress />
             {/* Global Flash Toast Feedback with Brand Styling */}
             <Toaster
               position="top-right"

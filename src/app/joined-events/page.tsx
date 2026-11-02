@@ -1,157 +1,115 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import toast from "react-hot-toast";
+import { HandHeart, RefreshCw, LogOut } from "lucide-react";
+import { themedSwal } from "@/lib/swal";
+import { isPast } from "@/lib/events";
+import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { EventItem, EventsResponse } from "@/types/event";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { EventCard, EventCardSkeleton } from "@/components/shared/EventCard";
 
-interface JoinedEventItem {
-  _id: string;
-  title: string;
-  category: string;
-  eventDate: string;
-  location: string;
-  description: string;
-  bannerImage: string;
-}
-
-export default function JoinedEventsPage() {
-  const [joinedEvents, setJoinedEvents] = useState<JoinedEventItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+function JoinedEventsContent() {
+  const { token } = useAuth();
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // The server already returns these sorted by event date
+      const res = await api<EventsResponse>("/events/manage/joined-events", { token });
+      setEvents(res.data);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not load your events.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
   useEffect(() => {
-    let ignore = false;
+    void load();
+  }, [load]);
 
-    const loadJoinedEvents = async () => {
-      try {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const response = await fetch(`${apiUrl}/events`);
-        const result = await response.json();
+  const handleLeave = async (event: EventItem) => {
+    const result = await themedSwal().fire({
+      title: "Leave this event?",
+      text: `Your spot in "${event.title}" will be released.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, leave",
+      cancelButtonText: "Stay",
+    });
+    if (!result.isConfirmed) return;
 
-        if (!ignore) {
-          if (result.success) {
-            setJoinedEvents(result.data || []);
-          } else {
-            setError(result.message || "Failed to retrieve joined events.");
-          }
-          setLoading(false);
-        }
-      } catch (err) {
-        if (!ignore) {
-          console.error("Fetch error:", err);
-          setError("Network error occurred while fetching joined events.");
-          setLoading(false);
-        }
-      }
-    };
-
-    loadJoinedEvents();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    try {
+      await api(`/events/${event._id}/join`, { method: "DELETE", token });
+      setEvents((prev) => prev.filter((e) => e._id !== event._id));
+      toast.success("You have left this event.");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Could not leave this event.");
+    }
+  };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-16 transition-colors">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-8 border-b border-slate-200 dark:border-slate-800 mb-8">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white">
-            Joined Events
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
-            View initiatives you have registered to volunteer for.
-          </p>
-        </div>
-        <Link
-          href="/events"
-          className="mt-4 sm:mt-0 inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#007a5e] hover:bg-[#00624b] shadow-sm transition"
-        >
-          Explore More Drives
-        </Link>
-      </header>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <PageHeader
+        eyebrow="Joined events"
+        title="Events you signed up for"
+        description="Listed by event date, so the next one you need to show up for comes first."
+      />
 
       {loading ? (
-        <div className="flex justify-center items-center py-24">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#007a5e] dark:border-teal-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {[0, 1, 2].map((i) => (
+            <EventCardSkeleton key={i} />
+          ))}
         </div>
       ) : error ? (
-        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900 text-center font-medium">
-          {error}
+        <div className="text-center py-16 rounded-3xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/20">
+          <p className="font-semibold text-rose-700 dark:text-rose-300">{error}</p>
+          <button onClick={load} className="btn-outline mt-5">
+            <RefreshCw className="w-4 h-4" />
+            Try again
+          </button>
         </div>
-      ) : joinedEvents.length === 0 ? (
-        <section className="text-center py-20 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-          <p className="text-slate-500 dark:text-slate-400 font-medium">
-            You haven&apos;t joined any community drives yet.
-          </p>
-          <Link
-            href="/events"
-            className="mt-4 inline-block text-sm font-semibold text-[#007a5e] dark:text-teal-400 hover:underline"
-          >
-            Find an event to join →
+      ) : events.length === 0 ? (
+        <div className="text-center py-20 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+          <HandHeart className="w-10 h-10 mx-auto text-slate-400" />
+          <p className="mt-3 font-semibold text-slate-700 dark:text-slate-200">You have not joined any events yet.</p>
+          <Link href="/events" className="btn-primary mt-5">
+            Browse upcoming events
           </Link>
-        </section>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {joinedEvents.map((event) => (
-            <div
-              key={event._id}
-              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition"
-            >
-              <div className="relative h-52 w-full bg-slate-100 dark:bg-slate-800">
-                <Image
-                  src={
-                    event.bannerImage ||
-                    "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c"
-                  }
-                  alt={event.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition duration-300"
-                />
-                <span className="absolute top-3 right-3 bg-[#007a5e]/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  {event.category}
-                </span>
-              </div>
-
-              <div className="p-6 flex flex-col grow">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white line-clamp-1">
-                  {event.title}
-                </h2>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 line-clamp-2 grow">
-                  {event.description}
-                </p>
-
-                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">
-                      Location:
-                    </span>
-                    <span className="truncate max-w-45">{event.location}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">
-                      Date:
-                    </span>
-                    <span>
-                      {new Date(event.eventDate).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <Link
-                    href={`/events/${event._id}`}
-                    className="block w-full text-center py-2.5 px-4 rounded-xl bg-[#007a5e] hover:bg-[#00624b] text-white text-sm font-semibold transition shadow-sm"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          {events.map((event) => (
+            <div key={event._id} className="flex flex-col gap-3">
+              <EventCard event={event} />
+              {!isPast(event.eventDate) && (
+                <button onClick={() => handleLeave(event)} className="btn-outline w-full py-2.5">
+                  <LogOut className="w-4 h-4" />
+                  Leave event
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
-    </main>
+    </div>
+  );
+}
+
+export default function JoinedEventsPage() {
+  return (
+    <ProtectedRoute>
+      <JoinedEventsContent />
+    </ProtectedRoute>
   );
 }

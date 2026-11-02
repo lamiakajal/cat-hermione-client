@@ -1,6 +1,14 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { api, ApiError } from "@/lib/api";
 
 export interface User {
   id: string;
@@ -8,6 +16,7 @@ export interface User {
   email: string;
   photoURL?: string;
   role?: string;
+  provider?: string;
 }
 
 interface AuthContextType {
@@ -19,6 +28,9 @@ interface AuthContextType {
   updateUser: (updatedData: Partial<User>) => void;
 }
 
+const USER_KEY = "unitypulse_user";
+const TOKEN_KEY = "unitypulse_token";
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -26,61 +38,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  // Stays true until the saved session has been read, so private routes
+  // never redirect to /login while a reload is still restoring the user
   const [loading, setLoading] = useState(true);
 
-  // Restore session asynchronously to prevent cascading renders warning in strict effects
-  useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const storedUser = localStorage.getItem("unitypulse_user");
-        const storedToken = localStorage.getItem("unitypulse_token");
+  const clearSession = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  }, []);
 
-        if (storedUser && storedToken) {
-          setUser(JSON.parse(storedUser));
-          setToken(storedToken);
-        }
-      } catch (err) {
-        console.error("Failed to restore session from localStorage", err);
-      } finally {
+  useEffect(() => {
+    const restore = async () => {
+      const savedToken = localStorage.getItem(TOKEN_KEY);
+      const savedUser = localStorage.getItem(USER_KEY);
+
+      if (!savedToken || !savedUser) {
         setLoading(false);
+        return;
+      }
+
+      try {
+        setUser(JSON.parse(savedUser));
+        setToken(savedToken);
+      } catch {
+        clearSession();
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+
+      // Confirm the token is still valid in the background
+      try {
+        const res = await api<{ user: User }>("/auth/me", { token: savedToken });
+        setUser(res.user);
+        localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      } catch (err) {
+        // Only drop the session when the server says the token is bad,
+        // not when it is merely unreachable
+        if (err instanceof ApiError && [401, 403, 404].includes(err.status)) {
+          clearSession();
+        }
       }
     };
 
-    // Defer state update to next microtask cycle
-    queueMicrotask(initializeAuth);
-  }, []);
+    void restore();
+  }, [clearSession]);
 
-  const login = (userData: User, authToken: string) => {
+  const login = useCallback((userData: User, authToken: string) => {
     setUser(userData);
     setToken(authToken);
-    localStorage.setItem("unitypulse_user", JSON.stringify(userData));
-    localStorage.setItem("unitypulse_token", authToken);
-  };
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    localStorage.setItem(TOKEN_KEY, authToken);
+  }, []);
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("unitypulse_user");
-    localStorage.removeItem("unitypulse_token");
-  };
+  const updateUser = useCallback((updatedData: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...updatedData };
+      localStorage.setItem(USER_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
-  const updateUser = (updatedData: Partial<User>) => {
-    if (!user) return;
-    const updated = { ...user, ...updatedData };
-    setUser(updated);
-    localStorage.setItem("unitypulse_user", JSON.stringify(updated));
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{ user, token, loading, login, logout, updateUser }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ user, token, loading, login, logout: clearSession, updateUser }),
+    [user, token, loading, login, clearSession, updateUser],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");

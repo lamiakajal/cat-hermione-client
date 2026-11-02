@@ -1,33 +1,104 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Heart, Moon, Sun, Menu, X, ArrowRight } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { Heart, Moon, Sun, Menu, X, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/context/AuthContext";
 import { UserDropdown } from "@/components/shared/UserDropdown";
 
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/events", label: "Upcoming Events" },
+  { href: "/#how-it-works", label: "How It Works" },
+  { href: "/#gallery", label: "Gallery" },
+];
+
+const PRIVATE_LINKS = [
+  { href: "/events/create", label: "Create Event" },
+  { href: "/manage-events", label: "Manage Events" },
+  { href: "/joined-events", label: "Joined Events" },
+  { href: "/profile", label: "My Profile" },
+];
+
 export const Navbar: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const isActive = (path: string) => pathname === path;
-  const closeMenu = () => setMobileMenuOpen(false);
+  const closeMenu = () => setMobileOpen(false);
+
+  // Track which home section is on screen so its menu link lights up
+  const [activeSection, setActiveSection] = useState("");
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const els = ["how-it-works", "gallery"]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => Boolean(el));
+    if (!els.length) return;
+
+    const ratios = new Map<string, number>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+        let best = "";
+        let bestRatio = 0;
+        ratios.forEach((r, id) => {
+          if (r > bestRatio) {
+            best = id;
+            bestRatio = r;
+          }
+        });
+        setActiveSection(best);
+      },
+      { rootMargin: "-25% 0px -45% 0px", threshold: [0, 0.1, 0.3, 0.6, 1] },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [pathname]);
+
+  const section = pathname === "/" ? activeSection : "";
+  const isActive = (href: string) => {
+    if (href.startsWith("/#")) return section === href.slice(2);
+    if (href === "/") return pathname === "/" && section === "";
+    return pathname === href;
+  };
+
+  const handleLogout = () => {
+    closeMenu();
+    logout();
+    toast.success("You have been logged out.");
+    router.push("/");
+  };
+
+  const linkClass = (path: string) =>
+    `px-4 py-2 rounded-xl transition-all duration-200 ${
+      isActive(path)
+        ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 font-bold"
+        : "text-slate-600 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
+    }`;
+
+  const themeButton = (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 transition"
+      aria-label="Toggle theme"
+    >
+      <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
+      <Moon className="w-4 h-4 block dark:hidden" />
+    </button>
+  );
 
   return (
-    <header className="relative z-50 w-full bg-white dark:bg-[#070d1e] border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white/80 dark:bg-[#070d1e]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
-          <Link
-            href="/"
-            onClick={closeMenu}
-            className="flex items-center gap-2 sm:gap-2.5 shrink-0"
-          >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-linear-to-tr from-[#00796B] to-emerald-400 flex items-center justify-center shadow-sm">
+          <Link href="/" onClick={closeMenu} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-linear-to-tr from-[#00796B] to-emerald-400 flex items-center justify-center shadow-sm loop-pulse">
               <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
             </div>
             <div className="flex flex-col">
@@ -40,139 +111,94 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-2 text-sm font-semibold">
-            <Link
-              href="/"
-              className={`px-4 py-2 rounded-xl transition-all duration-200 ${
-                isActive("/")
-                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 font-bold shadow-xs"
-                  : "text-slate-600 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
-              }`}
-            >
-              Home
-            </Link>
-
-            <Link
-              href="/events"
-              className={`px-4 py-2 rounded-xl transition-all duration-200 ${
-                isActive("/events")
-                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 font-bold shadow-xs"
-                  : "text-slate-600 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
-              }`}
-            >
-              Upcoming Events
-            </Link>
+          <nav className="hidden lg:flex items-center gap-2 text-sm font-semibold" aria-label="Main">
+            {NAV_LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`${linkClass(l.href)} ${l.href.startsWith("/#") ? "hidden xl:inline-block" : ""}`}
+              >
+                {l.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Desktop Right Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 hover:text-[#00897B] dark:hover:text-emerald-400 transition"
-              aria-label="Toggle Theme"
-            >
-              <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
-              <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
-            </button>
-
+          <div className="hidden lg:flex items-center gap-3">
+            {themeButton}
             {user ? (
-              <UserDropdown />
+              <>
+                <UserDropdown />
+                <button onClick={handleLogout} className="btn-outline btn-sm py-2.5">
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
             ) : (
               <>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-white transition"
-                >
+                <Link href="/register" className="px-4 py-2 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-white transition">
                   Sign Up
                 </Link>
-
-                <Link
-                  href="/login"
-                  className="px-5 py-2 rounded-xl bg-[#00796B] hover:bg-[#00695c] dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white dark:text-slate-950 text-sm font-bold shadow-xs hover:shadow-md transition active:scale-95"
-                >
-                  Log In
+                <Link href="/login" className="btn-primary">
+                  Login
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Right Controls */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex lg:hidden items-center gap-2">
+            {themeButton}
             <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300"
-              aria-label="Toggle Theme"
+              onClick={() => setMobileOpen((p) => !p)}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200"
+              aria-label="Toggle navigation menu"
+              aria-expanded={mobileOpen}
             >
-              <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
-              <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-
-            {user ? (
-              <UserDropdown />
-            ) : (
-              <button
-                onClick={() => setMobileMenuOpen((prev) => !prev)}
-                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 hover:text-[#00796B] dark:hover:text-emerald-400 transition active:scale-90"
-                aria-label="Toggle Mobile Navigation"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && !user && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d1e] px-4 pt-4 pb-6 space-y-4 shadow-xl">
-          <nav className="flex flex-col space-y-1.5 text-base font-bold">
-            <Link
-              href="/"
-              onClick={closeMenu}
-              className={`p-3 rounded-xl transition ${
-                isActive("/")
-                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
-                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
-              }`}
-            >
-              Home
-            </Link>
-
-            <Link
-              href="/events"
-              onClick={closeMenu}
-              className={`p-3 rounded-xl transition ${
-                isActive("/events")
-                  ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400 shadow-xs"
-                  : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
-              }`}
-            >
-              Upcoming Events
-            </Link>
+      {mobileOpen && (
+        <div className="lg:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#070d1e] px-4 pt-4 pb-6 space-y-4 shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="flex flex-col gap-1 text-base font-bold">
+            {[...NAV_LINKS, ...(user ? PRIVATE_LINKS : [])].map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={closeMenu}
+                className={`p-3 rounded-xl transition ${
+                  isActive(l.href)
+                    ? "bg-[#e6f7f2] dark:bg-emerald-950/60 text-[#00897B] dark:text-emerald-400"
+                    : "text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
-            <Link
-              href="/login"
-              onClick={closeMenu}
-              className="w-full py-3 rounded-xl bg-[#00796B] dark:bg-emerald-500 text-white dark:text-slate-950 font-bold text-sm text-center shadow-md flex items-center justify-center gap-2"
-            >
-              <span>Log In</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              href="/register"
-              onClick={closeMenu}
-              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 font-bold text-sm text-center hover:bg-slate-100 dark:hover:bg-slate-800/80"
-            >
-              Create an Account
-            </Link>
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2.5">
+            {user ? (
+              <>
+                <p className="px-1 text-xs text-slate-500 dark:text-slate-400 truncate">
+                  Signed in as {user.name || user.email}
+                </p>
+                <button onClick={handleLogout} className="btn-outline w-full py-3">
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" onClick={closeMenu} className="btn-primary w-full py-3">
+                  Login
+                </Link>
+                <Link href="/register" onClick={closeMenu} className="btn-outline w-full py-3">
+                  Create an account
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
